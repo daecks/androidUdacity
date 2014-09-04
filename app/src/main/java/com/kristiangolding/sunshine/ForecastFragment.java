@@ -1,5 +1,6 @@
 package com.kristiangolding.sunshine;
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,8 +12,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -85,6 +88,13 @@ public class ForecastFragment extends Fragment {
 
         ListView listView = (ListView)rootView.findViewById(R.id.listview_forecast);
         listView.setAdapter(mForecastAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Toast toast = Toast.makeText(adapterView.getContext(), mForecastAdapter.getItem(i), Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        });
 
         return rootView;
     }
@@ -194,7 +204,7 @@ public class ForecastFragment extends Fragment {
  * so for convenience we're breaking it out into its own method now.
 
  */
-        private String getReadableDateString(long time){
+  private String getReadableDateString(long time){
         // Because the API returns a unix timestamp (measured in seconds),
 
         // it must be converted to milliseconds in order to be converted to valid date.
@@ -209,7 +219,7 @@ public class ForecastFragment extends Fragment {
  * Prepare the weather high/lows for presentation.
  */
 
-        private String formatHighLows(double high, double low) {
+ private String formatHighLows(double high, double low) {
         // For presentation, assume the user doesn't care about tenths of a degree.
 
         long roundedHigh = Math.round(high);
@@ -230,7 +240,7 @@ public class ForecastFragment extends Fragment {
 
  * into an Object hierarchy for us.
  */
-        private String[] getWeatherDataFromJson(String forecastJsonStr, int numDays)
+ private String[] getWeatherDataFromJson(String forecastJsonStr, int numDays)
 
         throws JSONException {
 
