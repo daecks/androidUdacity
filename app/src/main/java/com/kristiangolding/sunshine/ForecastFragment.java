@@ -2,6 +2,7 @@ package com.kristiangolding.sunshine;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -60,7 +61,9 @@ public class ForecastFragment extends Fragment {
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                new FetchWeatherTask().execute("96004");
+                Context context = getActivity();
+                SharedPreferences sharedPref = getSharedPreferences(getString(R.string.pref_location_key), context.);
+                new FetchWeatherTask().execute(sharedPref.toString());
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
