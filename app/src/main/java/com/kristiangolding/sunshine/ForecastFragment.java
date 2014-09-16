@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -62,8 +63,10 @@ public class ForecastFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.action_refresh:
                 Context context = getActivity();
-                SharedPreferences sharedPref = getSharedPreferences(getString(R.string.pref_location_key), context.);
-                new FetchWeatherTask().execute(sharedPref.toString());
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                String location = sharedPref.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+                Log.d("LOG_TAG", "Location " + location);
+                new FetchWeatherTask().execute(location);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
