@@ -18,7 +18,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,12 +28,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.zip.Inflater;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -62,15 +59,18 @@ public class ForecastFragment extends Fragment {
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                Context context = getActivity();
-                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-                String location = sharedPref.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
-                Log.d("LOG_TAG", "Location " + location);
-                new FetchWeatherTask().execute(location);
+                updateWeather();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void updateWeather() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String location = sharedPref.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+        Log.d("LOG_TAG", "Location " + location);
+        new FetchWeatherTask().execute(location);
     }
 
     @Override
@@ -98,10 +98,7 @@ public class ForecastFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                //Toast toast = Toast.makeText(adapterView.getContext(), mForecastAdapter.getItem(i), Toast.LENGTH_SHORT);
-                //toast.show();
                 Intent forecastIntent = new Intent(adapterView.getContext(), DetailActivity.class).putExtra(Intent.EXTRA_TEXT, mForecastAdapter.getItem(i));
-                //forecastIntent.setAction(mForecastAdapter.getItem(i));
                 startActivity(forecastIntent);
             }
         });
@@ -221,7 +218,7 @@ public class ForecastFragment extends Fragment {
         Date date = new Date(time * 1000);
 
         SimpleDateFormat format = new SimpleDateFormat("E, MMM d");
-        return format.format(date).toString();
+        return format.format(date);
     }
 
 
@@ -234,10 +231,7 @@ public class ForecastFragment extends Fragment {
 
         long roundedHigh = Math.round(high);
         long roundedLow = Math.round(low);
-
-
-        String highLowStr = roundedHigh + "/" + roundedLow;
-        return highLowStr;
+        return roundedHigh + "/" + roundedLow;
     }
 
 
@@ -313,6 +307,12 @@ public class ForecastFragment extends Fragment {
         }
 
         return resultStrs;
+    }
+
+    @Override
+    public void onStart() {
+        updateWeather();
+        super.onStart();
     }
 
 }
