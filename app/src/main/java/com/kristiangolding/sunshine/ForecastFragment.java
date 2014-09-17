@@ -175,7 +175,7 @@ public class ForecastFragment extends Fragment {
                     return null;
                 }
                 forecastJsonStr = buffer.toString();
-                Log.v("LOG_TAG", "Forecast JSON string " + forecastJsonStr);
+                Log.d("LOG_TAG", "Forecast JSON string " + forecastJsonStr);
             } catch (IOException e) {
                 Log.e("ForecastFragment", "Error ", e);
                 // If the code didn't successfully get the weather data, there's no point in attempting
@@ -228,7 +228,16 @@ public class ForecastFragment extends Fragment {
 
  private String formatHighLows(double high, double low) {
         // For presentation, assume the user doesn't care about tenths of a degree.
-
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String unitPref = sharedPref.getString(getString(R.string.pref_temp_key), getString(R.string.pref_temp_default));
+        Log.d("LOG_TAG", "Temp unit pref =  " + unitPref);
+        Log.d("LOG_TAG", "Temp unit imperial =  " + getString(R.string.pref_temp_imperial));
+        // Assumption is units come in as metric
+        if(new String(unitPref).equals(getString(R.string.pref_temp_imperial)))
+        {
+            high = high * 1.8 + 32;
+            low = low * 1.8 + 32;
+        }
         long roundedHigh = Math.round(high);
         long roundedLow = Math.round(low);
         return roundedHigh + "/" + roundedLow;
