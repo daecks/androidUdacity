@@ -15,4 +15,20 @@
     <string name="pref_location_key" translatable="false">location</string>
     <string name="pref_location_default" translatable="false">94043</string>
 
+    <string name="pref_temp_key" translatable="false">temperature</string>
+    <string name="pref_temp_label" translatable="false">Temperature units</string>
+    <string name="pref_temp_default" translatable="false">Celsius</string>
+    <string name="pref_temp_metric">Celsius</string>
+    <string name="pref_temp_imperial">Fahrenheit</string>
+
+    <string-array name="listArray">
+        <item>Celsius</item>
+        <item>Fahrenheit</item>
+    </string-array>
+
+    <string-array name="listValues">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
 </resources>
