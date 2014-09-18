@@ -61,16 +61,6 @@ public class ForecastFragment extends Fragment {
             case R.id.action_refresh:
                 updateWeather();
                 return true;
-            case R.id.action_map:
-                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-                String location = sharedPref.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW);
-                String uri = "geo:0,0?q=" + location;
-                mapIntent.setData(Uri.parse(uri));
-                if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
-                    startActivity(mapIntent);
-                }
-                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
