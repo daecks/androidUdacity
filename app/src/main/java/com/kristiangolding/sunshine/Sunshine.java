@@ -27,8 +27,11 @@ import java.util.ArrayList;
 
 public class Sunshine extends ActionBarActivity {
 
+    private static final String LOG_TAG = Sunshine.class.getSimpleName();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(LOG_TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sunshine);
         if (savedInstanceState == null) {
@@ -36,6 +39,37 @@ public class Sunshine extends ActionBarActivity {
                     .add(R.id.container, new ForecastFragment())
                     .commit();
         }
+    }
+
+    @Override
+    protected void onStart() {
+        Log.d(LOG_TAG, "onStart");
+        super.onStart();
+        // The activity is about to become visible.
+    }
+    @Override
+    protected void onResume() {
+        Log.d(LOG_TAG, "onResume");
+        super.onResume();
+        // The activity has become visible (it is now "resumed").
+    }
+    @Override
+    protected void onPause() {
+        Log.d(LOG_TAG, "onPause");
+        super.onPause();
+        // Another activity is taking focus (this activity is about to be "paused").
+    }
+    @Override
+    protected void onStop() {
+        Log.d(LOG_TAG, "onStop");
+        super.onStop();
+        // The activity is no longer visible (it is now "stopped")
+    }
+    @Override
+    protected void onDestroy() {
+        Log.d(LOG_TAG, "onDestroy");
+        super.onDestroy();
+        // The activity is about to be destroyed.
     }
 
 

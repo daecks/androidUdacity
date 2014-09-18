@@ -38,6 +38,8 @@ import java.util.Date;
  */
 public class ForecastFragment extends Fragment {
 
+    private static final String LOG_TAG = ForecastFragment.class.getSimpleName();
+
     private ArrayAdapter<String> mForecastAdapter;
     public ForecastFragment() {
     }
@@ -69,7 +71,7 @@ public class ForecastFragment extends Fragment {
     private void updateWeather() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String location = sharedPref.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
-        Log.d("LOG_TAG", "Location " + location);
+        Log.v(LOG_TAG, "Location " + location);
         new FetchWeatherTask().execute(location);
     }
 
@@ -145,7 +147,7 @@ public class ForecastFragment extends Fragment {
                         .appendQueryParameter("mode","json")
                         .appendQueryParameter("units","metric")
                         .appendQueryParameter("cnt","7");
-                Log.v("LOG_TAG", "Forecast JSON string URI " + uri.toString());
+                Log.v(LOG_TAG, "Forecast JSON string URI " + uri.toString());
                 URL url = new URL(uri.toString());
 
                 // Create the request to OpenWeatherMap, and open the connection
@@ -175,7 +177,7 @@ public class ForecastFragment extends Fragment {
                     return null;
                 }
                 forecastJsonStr = buffer.toString();
-                Log.d("LOG_TAG", "Forecast JSON string " + forecastJsonStr);
+                Log.v(LOG_TAG, "Forecast JSON string " + forecastJsonStr);
             } catch (IOException e) {
                 Log.e("ForecastFragment", "Error ", e);
                 // If the code didn't successfully get the weather data, there's no point in attempting
@@ -230,8 +232,8 @@ public class ForecastFragment extends Fragment {
         // For presentation, assume the user doesn't care about tenths of a degree.
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String unitPref = sharedPref.getString(getString(R.string.pref_temp_key), getString(R.string.pref_temp_default));
-        Log.d("LOG_TAG", "Temp unit pref =  " + unitPref);
-        Log.d("LOG_TAG", "Temp unit imperial =  " + getString(R.string.pref_temp_imperial));
+        Log.v(LOG_TAG, "Temp unit pref =  " + unitPref);
+        Log.v(LOG_TAG, "Temp unit imperial =  " + getString(R.string.pref_temp_imperial));
         // Assumption is units come in as metric
         if(new String(unitPref).equals(getString(R.string.pref_temp_imperial)))
         {
