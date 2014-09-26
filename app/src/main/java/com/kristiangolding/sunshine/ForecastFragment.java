@@ -23,12 +23,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.zip.Inflater;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -120,7 +118,7 @@ public class ForecastFragment extends Fragment {
                 //URL url = new URL("http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=7");
                 Uri.Builder uri = new Uri.Builder();
                 uri.scheme("http").authority("api.openweathermap.org")
-                        .appendPath("data")
+                        .appendPath("com/kristiangolding/sunshine/data")
                         .appendPath("2.5")
                         .appendPath("forecast")
                         .appendPath("daily")
