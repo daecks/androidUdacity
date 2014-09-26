@@ -18,7 +18,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,17 +28,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.zip.Inflater;
 
 /**
  * A placeholder fragment containing a simple view.
  */
 public class ForecastFragment extends Fragment {
+
+    private static final String LOG_TAG = ForecastFragment.class.getSimpleName();
 
     private ArrayAdapter<String> mForecastAdapter;
     public ForecastFragment() {
@@ -62,15 +61,18 @@ public class ForecastFragment extends Fragment {
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                Context context = getActivity();
-                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-                String location = sharedPref.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
-                Log.d("LOG_TAG", "Location " + location);
-                new FetchWeatherTask().execute(location);
+                updateWeather();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void updateWeather() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String location = sharedPref.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+        Log.v(LOG_TAG, "Location " + location);
+        new FetchWeatherTask().execute(location);
     }
 
     @Override
@@ -98,10 +100,7 @@ public class ForecastFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                //Toast toast = Toast.makeText(adapterView.getContext(), mForecastAdapter.getItem(i), Toast.LENGTH_SHORT);
-                //toast.show();
                 Intent forecastIntent = new Intent(adapterView.getContext(), DetailActivity.class).putExtra(Intent.EXTRA_TEXT, mForecastAdapter.getItem(i));
-                //forecastIntent.setAction(mForecastAdapter.getItem(i));
                 startActivity(forecastIntent);
             }
         });
@@ -148,7 +147,7 @@ public class ForecastFragment extends Fragment {
                         .appendQueryParameter("mode","json")
                         .appendQueryParameter("units","metric")
                         .appendQueryParameter("cnt","7");
-                Log.v("LOG_TAG", "Forecast JSON string URI " + uri.toString());
+                Log.v(LOG_TAG, "Forecast JSON string URI " + uri.toString());
                 URL url = new URL(uri.toString());
 
                 // Create the request to OpenWeatherMap, and open the connection
@@ -178,7 +177,7 @@ public class ForecastFragment extends Fragment {
                     return null;
                 }
                 forecastJsonStr = buffer.toString();
-                Log.v("LOG_TAG", "Forecast JSON string " + forecastJsonStr);
+                Log.v(LOG_TAG, "Forecast JSON string " + forecastJsonStr);
             } catch (IOException e) {
                 Log.e("ForecastFragment", "Error ", e);
                 // If the code didn't successfully get the weather data, there's no point in attempting
@@ -221,7 +220,7 @@ public class ForecastFragment extends Fragment {
         Date date = new Date(time * 1000);
 
         SimpleDateFormat format = new SimpleDateFormat("E, MMM d");
-        return format.format(date).toString();
+        return format.format(date);
     }
 
 
@@ -231,13 +230,19 @@ public class ForecastFragment extends Fragment {
 
  private String formatHighLows(double high, double low) {
         // For presentation, assume the user doesn't care about tenths of a degree.
-
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String unitPref = sharedPref.getString(getString(R.string.pref_temp_key), getString(R.string.pref_temp_default));
+        Log.v(LOG_TAG, "Temp unit pref =  " + unitPref);
+        Log.v(LOG_TAG, "Temp unit imperial =  " + getString(R.string.pref_temp_imperial));
+        // Assumption is units come in as metric
+        if(new String(unitPref).equals(getString(R.string.pref_temp_imperial)))
+        {
+            high = high * 1.8 + 32;
+            low = low * 1.8 + 32;
+        }
         long roundedHigh = Math.round(high);
         long roundedLow = Math.round(low);
-
-
-        String highLowStr = roundedHigh + "/" + roundedLow;
-        return highLowStr;
+        return roundedHigh + "/" + roundedLow;
     }
 
 
@@ -313,6 +318,12 @@ public class ForecastFragment extends Fragment {
         }
 
         return resultStrs;
+    }
+
+    @Override
+    public void onStart() {
+        updateWeather();
+        super.onStart();
     }
 
 }
