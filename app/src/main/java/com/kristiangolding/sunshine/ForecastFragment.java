@@ -1,8 +1,12 @@
 package com.kristiangolding.sunshine;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -54,11 +59,28 @@ public class ForecastFragment extends Fragment {
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                new FetchWeatherTask().execute("96004");
+                updateWeather();
+                return true;
+            case R.id.action_map:
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                String location = sharedPref.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW);
+                String uri = "geo:0,0?q=" + location;
+                mapIntent.setData(Uri.parse(uri));
+                if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                    startActivity(mapIntent);
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void updateWeather() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String location = sharedPref.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+        Log.d("LOG_TAG", "Location " + location);
+        new FetchWeatherTask().execute(location);
     }
 
     @Override
@@ -83,6 +105,13 @@ public class ForecastFragment extends Fragment {
 
         ListView listView = (ListView)rootView.findViewById(R.id.listview_forecast);
         listView.setAdapter(mForecastAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent forecastIntent = new Intent(adapterView.getContext(), DetailActivity.class).putExtra(Intent.EXTRA_TEXT, mForecastAdapter.getItem(i));
+                startActivity(forecastIntent);
+            }
+        });
 
         return rootView;
     }
@@ -156,7 +185,7 @@ public class ForecastFragment extends Fragment {
                     return null;
                 }
                 forecastJsonStr = buffer.toString();
-                Log.v("LOG_TAG", "Forecast JSON string " + forecastJsonStr);
+                Log.d("LOG_TAG", "Forecast JSON string " + forecastJsonStr);
             } catch (IOException e) {
                 Log.e("ForecastFragment", "Error ", e);
                 // If the code didn't successfully get the weather data, there's no point in attempting
@@ -192,14 +221,14 @@ public class ForecastFragment extends Fragment {
  * so for convenience we're breaking it out into its own method now.
 
  */
-        private String getReadableDateString(long time){
+  private String getReadableDateString(long time){
         // Because the API returns a unix timestamp (measured in seconds),
 
         // it must be converted to milliseconds in order to be converted to valid date.
         Date date = new Date(time * 1000);
 
         SimpleDateFormat format = new SimpleDateFormat("E, MMM d");
-        return format.format(date).toString();
+        return format.format(date);
     }
 
 
@@ -207,15 +236,21 @@ public class ForecastFragment extends Fragment {
  * Prepare the weather high/lows for presentation.
  */
 
-        private String formatHighLows(double high, double low) {
+ private String formatHighLows(double high, double low) {
         // For presentation, assume the user doesn't care about tenths of a degree.
-
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String unitPref = sharedPref.getString(getString(R.string.pref_temp_key), getString(R.string.pref_temp_default));
+        Log.d("LOG_TAG", "Temp unit pref =  " + unitPref);
+        Log.d("LOG_TAG", "Temp unit imperial =  " + getString(R.string.pref_temp_imperial));
+        // Assumption is units come in as metric
+        if(new String(unitPref).equals(getString(R.string.pref_temp_imperial)))
+        {
+            high = high * 1.8 + 32;
+            low = low * 1.8 + 32;
+        }
         long roundedHigh = Math.round(high);
         long roundedLow = Math.round(low);
-
-
-        String highLowStr = roundedHigh + "/" + roundedLow;
-        return highLowStr;
+        return roundedHigh + "/" + roundedLow;
     }
 
 
@@ -228,7 +263,7 @@ public class ForecastFragment extends Fragment {
 
  * into an Object hierarchy for us.
  */
-        private String[] getWeatherDataFromJson(String forecastJsonStr, int numDays)
+ private String[] getWeatherDataFromJson(String forecastJsonStr, int numDays)
 
         throws JSONException {
 
@@ -291,6 +326,12 @@ public class ForecastFragment extends Fragment {
         }
 
         return resultStrs;
+    }
+
+    @Override
+    public void onStart() {
+        updateWeather();
+        super.onStart();
     }
 
 }
