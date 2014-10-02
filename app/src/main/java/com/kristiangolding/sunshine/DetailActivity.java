@@ -1,16 +1,20 @@
 package com.kristiangolding.sunshine;
 
 import android.content.Intent;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v7.widget.ShareActionProvider;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
+//import android.widget.ShareActionProvider;
 import android.widget.TextView;
 
 
@@ -23,7 +27,7 @@ public class DetailActivity extends ActionBarActivity {
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
+                    .add(R.id.container, new DetailFragment())
                     .commit();
         }
     }
@@ -33,6 +37,7 @@ public class DetailActivity extends ActionBarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.detail, menu);
+
         return true;
     }
 
@@ -43,29 +48,47 @@ public class DetailActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            Intent intent = new Intent(this, SettingsActivity.class);
-            startActivity(intent);
+            Intent activityIntent = new Intent(this, SettingsActivity.class);
+            startActivity(activityIntent);
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
+    public static class DetailFragment extends Fragment {
 
-        public PlaceholderFragment() {
+        private static final String LOG_TAG = DetailFragment.class.getSimpleName();
+        private static String message;
+
+        public DetailFragment(){
+            setHasOptionsMenu(true);
+        }
+
+
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+            inflater.inflate(R.menu.detailfragment, menu);
+
+            // Locate MenuItem with ShareActionProvider
+            MenuItem item = menu.findItem(R.id.menu_item_share);
+            // Fetch and store ShareActionProvider
+            ShareActionProvider mShareActionProvider = (ShareActionProvider)MenuItemCompat.getActionProvider(item);
+            Intent shareIntent = new Intent(Intent.ACTION_SEND).putExtra(Intent.EXTRA_TEXT, message + " #SUNSHINE_APP");
+            shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+            shareIntent.setType("text/plain");
+            mShareActionProvider.setShareIntent(shareIntent);
+            //super.onCreateOptionsMenu(menu, inflater);
         }
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
+                                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
             Intent intent = getActivity().getIntent();
-            String message = intent.getStringExtra(Intent.EXTRA_TEXT);
+            message = intent.getStringExtra(Intent.EXTRA_TEXT);
             ((TextView)rootView.findViewById(R.id.detail_view)).setText(message);
             return rootView;
         }
+
     }
 }
