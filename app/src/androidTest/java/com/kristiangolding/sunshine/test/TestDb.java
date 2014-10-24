@@ -15,9 +15,11 @@
  */
 package com.kristiangolding.sunshine.test;
 
+import android.annotation.TargetApi;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.test.AndroidTestCase;
 import android.util.Log;
 
@@ -31,6 +33,9 @@ import java.util.Set;
 public class TestDb extends AndroidTestCase {
 
     public static final String LOG_TAG = TestDb.class.getSimpleName();
+    public static String TEST_CITY_NAME = "North Pole";
+    public static String TEST_LOCATION = "99705";
+    public static String TEST_DATE = "20141205";
 
     public void testCreateDb() throws Throwable {
         mContext.deleteDatabase(WeatherDbHelper.DATABASE_NAME);
@@ -54,10 +59,10 @@ public class TestDb extends AndroidTestCase {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         // Create a new map of values, where column names are the keys
-        ContentValues values = createNorthPoleLocationValues();
+        ContentValues locationValues = createNorthPoleLocationValues();
 
         long locationRowId;
-        locationRowId = db.insert(LocationEntry.TABLE_NAME, null, values);
+        locationRowId = db.insert(LocationEntry.TABLE_NAME, null, locationValues);
 
         // Verify we got a row back.
         assertTrue(locationRowId != -1);
@@ -77,7 +82,7 @@ public class TestDb extends AndroidTestCase {
                 null // sort order
         );
 
-        validateCursor(cursor, values);
+        TestDb.validateCursor(cursor, locationValues);
 
         ContentValues weatherValues = createWeatherValues(locationRowId);
 
@@ -95,7 +100,32 @@ public class TestDb extends AndroidTestCase {
                 null  // sort order
         );
 
-        validateCursor(weatherCursor, weatherValues);
+        TestDb.validateCursor(weatherCursor, weatherValues);
+
+        // Add the location values in with the weather data so that we can make
+        // sure that the join worked and we actually get all the values back
+        addAllContentValues(weatherValues, locationValues);
+
+        // Get the joined Weather and Location data
+        weatherCursor = mContext.getContentResolver().query(
+                WeatherEntry.buildWeatherLocation(TestDb.TEST_LOCATION),
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null  // sort order
+        );
+        TestDb.validateCursor(weatherCursor, weatherValues);
+
+        // Get the joined Weather and Location data with a start date
+        weatherCursor = mContext.getContentResolver().query(
+                WeatherEntry.buildWeatherLocationWithStartDate(
+                        TestDb.TEST_LOCATION, TestDb.TEST_DATE),
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null  // sort order
+        );
+        TestDb.validateCursor(weatherCursor, weatherValues);
 
         dbHelper.close();
     }
@@ -140,5 +170,14 @@ public class TestDb extends AndroidTestCase {
             assertEquals(expectedValue, valueCursor.getString(idx));
         }
         valueCursor.close();
+    }
+
+    // The target api annotation is needed for the call to keySet -- we wouldn't want
+    // to use this in our app, but in a test it's fine to assume a higher target.
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    void addAllContentValues(ContentValues destination, ContentValues source) {
+        for (String key : source.keySet()) {
+            destination.put(key, source.getAsString(key));
+        }
     }
 }
