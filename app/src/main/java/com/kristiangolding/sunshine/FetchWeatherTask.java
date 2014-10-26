@@ -49,6 +49,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void>
         String locationQuery = params[0];
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
+        int numDays = 14;
 
 // Will contain the raw JSON response as a string.
         String forecastJsonStr = null;
@@ -60,14 +61,14 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void>
             //URL url = new URL("http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=7");
             Uri.Builder uri = new Uri.Builder();
             uri.scheme("http").authority("api.openweathermap.org")
-                    .appendPath("com/kristiangolding/sunshine/data")
+                    .appendPath("data")
                     .appendPath("2.5")
                     .appendPath("forecast")
                     .appendPath("daily")
                     .appendQueryParameter("q",params[0])
                     .appendQueryParameter("mode","json")
                     .appendQueryParameter("units","metric")
-                    .appendQueryParameter("cnt","14");
+                    .appendQueryParameter("cnt",Integer.toString(numDays));
             Log.v(LOG_TAG, "Forecast JSON string URI " + uri.toString());
             URL url = new URL(uri.toString());
 
@@ -81,7 +82,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void>
             StringBuffer buffer = new StringBuffer();
             if (inputStream == null) {
                 // Nothing to do.
-                //return null;
+                return null;
             }
             reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -116,6 +117,14 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void>
                 }
             }
         }
+
+        try {
+            getWeatherDataFromJson(forecastJsonStr, numDays, locationQuery);
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, e.getMessage(), e);
+            e.printStackTrace();
+        }
+        // This will only happen if there was an error getting or parsing the forecast.
         return null;
     }
 
@@ -129,7 +138,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void>
 
      * into an Object hierarchy for us.
      */
-    private String[] getWeatherDataFromJson(String forecastJsonStr, int numDays,
+    private void getWeatherDataFromJson(String forecastJsonStr, int numDays,
                                             String locationSetting)
             throws JSONException {
 
@@ -241,12 +250,9 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void>
         if (cVVector.size() > 0) {
             ContentValues[] cvArray = new ContentValues[cVVector.size()];
             cVVector.toArray(cvArray);
-            int rowsInserted = mContext.getContentResolver()
-                    .bulkInsert(WeatherContract.WeatherEntry.CONTENT_URI, cvArray);
-            Log.v(LOG_TAG, "inserted " + rowsInserted + " rows of weather data");
+            mContext.getContentResolver().bulkInsert(WeatherContract.WeatherEntry.CONTENT_URI, cvArray);
         }
 
-        return resultStrs;
     }
 
     private long addLocation(String locationSetting, String cityName, double lat, double lon) {

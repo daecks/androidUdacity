@@ -33,6 +33,10 @@ public class WeatherContract {
     public static final String PATH_WEATHER = "weather";
     public static final String PATH_LOCATION = "location";
 
+    // Format used for storing dates in the database.  ALso used for converting those strings
+    // back into date objects for comparison/processing.
+    public static final String DATE_FORMAT = "yyyyMMdd";
+
     /* Inner class that defines the table contents of the weather table */
     public static final class WeatherEntry implements BaseColumns {
 
@@ -124,10 +128,6 @@ public class WeatherContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
     }
-
-    // Format used for storing dates in the database.  ALso used for converting those strings
-    // back into date objects for comparison/processing.
-    public static final String DATE_FORMAT = "yyyyMMdd";
 
     /**
      * Converts Date class to a string representation, used for easy comparison and database lookup.

@@ -50,6 +50,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 {
     private static final int FORECAST_LOADER = 0;
     private String mLocation;
+    private SimpleCursorAdapter mForecastAdapter;
 
     // For the forecast view we're showing only a small subset of the stored data.
     // Specify the columns we need.
@@ -78,7 +79,6 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public static final int COL_LOCATION_SETTING = 5;
     private static final String LOG_TAG = ForecastFragment.class.getSimpleName();
 
-    private SimpleCursorAdapter mForecastAdapter;
     public ForecastFragment() {
     }
 
@@ -106,6 +106,14 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mLocation != null && !mLocation.equals(Utility.getPreferredLocation(getActivity()))) {
+            getLoaderManager().restartLoader(FORECAST_LOADER, null, this);
+        }
+    }
+
     private void updateWeather() {
         String location = Utility.getPreferredLocation(getActivity());
         Log.v(LOG_TAG, "Location " + location);
@@ -115,7 +123,6 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_sunshine, container, false);
 
         ArrayList weekForecast = new ArrayList();
         weekForecast.add("Today, Sunny, 88/63");
@@ -170,33 +177,26 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             }
         });
 
-        ListView listView = (ListView)rootView.findViewById(R.id.listview_forecast);
+        View rootView = inflater.inflate(R.layout.fragment_sunshine, container, false);
+
+        // Get a reference to the ListView, and attach this adapter to it.
+        ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
         listView.setAdapter(mForecastAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 Cursor cursor = mForecastAdapter.getCursor();
                 if (cursor != null && cursor.moveToPosition(position)) {
-                    String dateString = Utility.formatDate(cursor.getString(COL_WEATHER_DATE));
-                    String weatherDescription = cursor.getString(COL_WEATHER_DESC);
-
-                    boolean isMetric = Utility.isMetric(getActivity());
-                    String high = Utility.formatTemperature(
-                            cursor.getDouble(COL_WEATHER_MAX_TEMP), isMetric);
-                    String low = Utility.formatTemperature(
-                            cursor.getDouble(COL_WEATHER_MIN_TEMP), isMetric);
-
-                    String detailString = String.format("%s - %s - %s/%s",
-                            dateString, weatherDescription, high, low);
-
                     Intent intent = new Intent(getActivity(), DetailActivity.class)
-                            .putExtra(Intent.EXTRA_TEXT, detailString);
+                            .putExtra(DetailActivity.DATE_KEY, cursor.getString(COL_WEATHER_DATE));
                     startActivity(intent);
                 }
             }
         });
 
         return rootView;
+
     }
 
     @Override
